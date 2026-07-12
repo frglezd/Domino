@@ -1,6 +1,6 @@
 ## Domino
 
-A simple Java Swing implementation of block dominoes (double-six set), played against a basic AI opponent.
+A simple Java Swing implementation of block dominoes (double-six set), played against a basic, hard coded AI opponent, or another human player.
 
 ### Rules implemented
 
