@@ -18,7 +18,7 @@ public class DominoTileView extends JComponent {
     private final int left;
     private final int right;
     private final boolean faceDown;
-    private boolean selected = false;
+    private boolean highlighted = false;
 
     public DominoTileView(int left, int right, boolean faceDown, int width, int height) {
         this.left = left;
@@ -28,8 +28,8 @@ public class DominoTileView extends JComponent {
         setOpaque(false);
     }
 
-    public void setSelected(boolean selected) {
-        this.selected = selected;
+    public void setHighlighted(boolean highlighted) {
+        this.highlighted = highlighted;
         repaint();
     }
 
@@ -40,6 +40,20 @@ public class DominoTileView extends JComponent {
             @Override
             public void mouseClicked(MouseEvent e) {
                 action.run();
+            }
+        });
+    }
+
+    public void setHoverListener(Runnable onEnter, Runnable onExit) {
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (onEnter != null) onEnter.run();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (onExit != null) onExit.run();
             }
         });
     }
@@ -68,8 +82,8 @@ public class DominoTileView extends JComponent {
         } else {
             g2.setColor(new Color(250, 246, 235));
             g2.fill(body);
-            g2.setColor(selected ? new Color(255, 200, 60) : new Color(30, 30, 30));
-            g2.setStroke(new BasicStroke(selected ? 4 : 2));
+            g2.setColor(highlighted ? new Color(255, 200, 60) : new Color(30, 30, 30));
+            g2.setStroke(new BasicStroke(highlighted ? 4 : 2));
             g2.draw(body);
 
             g2.setColor(new Color(30, 30, 30));
@@ -81,6 +95,11 @@ public class DominoTileView extends JComponent {
                 g2.drawLine(6, h / 2, w - 6, h / 2);
                 drawPips(g2, left, 0, 0, w, h / 2);
                 drawPips(g2, right, 0, h / 2, w, h / 2);
+            }
+
+            if (highlighted) {
+                g2.setColor(new Color(255, 200, 60, 90));
+                g2.fill(body);
             }
         }
 

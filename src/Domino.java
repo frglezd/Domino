@@ -43,6 +43,7 @@ public class Domino {
 
     Mode mode = Mode.VS_AI;
     int leftEnd, rightEnd;
+    DominoTileView leftEndView, rightEndView;
     boolean boardEmpty = true;
     boolean player1Turn = true;
     boolean awaitingReveal = false;
@@ -438,7 +439,7 @@ public class Domino {
         statusLabel.setText(text);
     }
 
-    void renderHandPanel(JPanel panel, List<Tile> hand, boolean visible) {
+    void renderHandPanel(JPanel panel, List<Tile> hand, boolean visible, boolean interactive) {
         panel.removeAll();
         for (int i = 0; i < hand.size(); i++) {
             if (visible) {
@@ -446,6 +447,24 @@ public class Domino {
                 DominoTileView view = new DominoTileView(t.left, t.right, false, TILE_W, TILE_H);
                 int index = i;
                 view.setOnClick(() -> onHandTileClicked(index));
+
+                boolean fitsLeft = t.matches(leftEnd);
+                boolean fitsRight = t.matches(rightEnd);
+                boolean playable = interactive && (boardEmpty || fitsLeft || fitsRight);
+                view.setHighlighted(playable);
+
+                if (playable && !boardEmpty) {
+                    view.setHoverListener(
+                            () -> {
+                                if (fitsLeft && leftEndView != null) leftEndView.setHighlighted(true);
+                                if (fitsRight && rightEndView != null) rightEndView.setHighlighted(true);
+                            },
+                            () -> {
+                                if (leftEndView != null) leftEndView.setHighlighted(false);
+                                if (rightEndView != null) rightEndView.setHighlighted(false);
+                            });
+                }
+
                 panel.add(view);
             } else {
                 panel.add(new DominoTileView(0, 0, true, TILE_W, TILE_H));
@@ -513,10 +532,14 @@ public class Domino {
         adjustFrameHeight(maxY + BOARD_MARGIN_Y);
 
         boardPanel.removeAll();
+        leftEndView = null;
+        rightEndView = null;
         for (TilePlacement p : placements) {
             DominoTileView view = new DominoTileView(p.left(), p.right(), false, p.width(), p.height());
             view.setBounds(p.x(), p.y(), p.width(), p.height());
             boardPanel.add(view);
+            if (leftEndView == null) leftEndView = view;
+            rightEndView = view;
         }
         boardPanel.setPreferredSize(new Dimension(maxX + BOARD_MARGIN_X, maxY + BOARD_MARGIN_Y));
         boardPanel.revalidate();
@@ -544,8 +567,11 @@ public class Domino {
         boolean player1Visible = mode == Mode.VS_AI || (!awaitingReveal && player1Turn);
         boolean player2Visible = mode == Mode.TWO_PLAYER && !awaitingReveal && !player1Turn;
 
-        renderHandPanel(player1HandPanel, player1Hand, player1Visible);
-        renderHandPanel(player2HandPanel, player2Hand, player2Visible);
+        boolean player1Interactive = player1Visible && player1Turn && !gameOver;
+        boolean player2Interactive = player2Visible && !gameOver;
+
+        renderHandPanel(player1HandPanel, player1Hand, player1Visible, player1Interactive);
+        renderHandPanel(player2HandPanel, player2Hand, player2Visible, player2Interactive);
 
         boneyardLabel.setText("Boneyard: " + boneyard.size());
 
