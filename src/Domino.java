@@ -14,9 +14,11 @@ public class Domino {
     static final int BOARD_MARGIN_Y = 16;
     static final int TILE_GAP = 4;
     static final int DEFAULT_BOARD_WIDTH = 900;
+    static final int DEFAULT_FRAME_WIDTH = 1000;
     static final int MIN_FRAME_HEIGHT = 750;
     static final int DEFAULT_CHROME_HEIGHT = 400;
     static final int SCREEN_HEIGHT_MARGIN = 20;
+    static final int SCREEN_WIDTH_MARGIN = 20;
 
     private record TilePlacement(int x, int y, int width, int height, int left, int right) {}
 
@@ -50,7 +52,7 @@ public class Domino {
     boolean gameOver = false;
 
     Domino() {
-        frame.setSize(1000, 750);
+        frame.setSize(DEFAULT_FRAME_WIDTH, MIN_FRAME_HEIGHT);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
@@ -529,7 +531,7 @@ public class Domino {
             maxX = Math.max(maxX, p.x() + p.width());
             maxY = Math.max(maxY, p.y() + p.height());
         }
-        adjustFrameHeight(maxY + BOARD_MARGIN_Y);
+        adjustFrameSize(maxY + BOARD_MARGIN_Y);
 
         boardPanel.removeAll();
         leftEndView = null;
@@ -546,17 +548,20 @@ public class Domino {
         boardPanel.repaint();
     }
 
-    void adjustFrameHeight(int requiredBoardHeight) {
+    void adjustFrameSize(int requiredBoardHeight) {
         int chromeHeight = frame.getHeight() - boardScroll.getHeight();
         if (chromeHeight <= 0) chromeHeight = DEFAULT_CHROME_HEIGHT;
 
-        int maxFrameHeight = Math.max(MIN_FRAME_HEIGHT, GraphicsEnvironment.getLocalGraphicsEnvironment()
-                .getMaximumWindowBounds().height - SCREEN_HEIGHT_MARGIN);
+        Rectangle screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+        int availableHeight = screen.height - SCREEN_HEIGHT_MARGIN;
+        int availableWidth = screen.width - SCREEN_WIDTH_MARGIN;
 
-        int desired = Math.max(MIN_FRAME_HEIGHT, Math.min(maxFrameHeight, chromeHeight + requiredBoardHeight));
+        int preferredHeight = Math.max(MIN_FRAME_HEIGHT, chromeHeight + requiredBoardHeight);
+        int desiredHeight = Math.min(preferredHeight, availableHeight);
+        int desiredWidth = Math.min(DEFAULT_FRAME_WIDTH, availableWidth);
 
-        if (Math.abs(desired - frame.getHeight()) > 1) {
-            frame.setSize(frame.getWidth(), desired);
+        if (Math.abs(desiredWidth - frame.getWidth()) > 1 || Math.abs(desiredHeight - frame.getHeight()) > 1) {
+            frame.setSize(desiredWidth, desiredHeight);
             frame.setLocationRelativeTo(null);
         }
     }
